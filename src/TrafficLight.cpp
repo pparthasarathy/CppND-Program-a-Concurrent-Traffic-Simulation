@@ -33,10 +33,11 @@ void MessageQueue<T>::send(T &&msg)
 
 
 /* Implementation of class "TrafficLight" */
-/*TrafficLight::TrafficLight()
+TrafficLight::TrafficLight()
 {
     _currentPhase = TrafficLightPhase::red;
-}*/
+    _msgQ = std::make_shared<MessageQueue<TrafficLightPhase>>();
+}
 
 void TrafficLight::waitForGreen()
 {
@@ -101,8 +102,8 @@ std::ostream& operator<<(std::ostream& os, TrafficLightPhase c)
 {
     switch(c)
     {
-        case red   : os << "red";    break;
-        case green : os << "green";  break;
+        case red   : os << "red ";    break;
+        case green : os << "green ";  break;
         default    : os.setstate(std::ios_base::failbit);
     }
     return os;
