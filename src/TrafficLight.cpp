@@ -78,22 +78,48 @@ void TrafficLight::cycleThroughPhases()
     // and toggles the current phase of the traffic light between red and green and sends an update method 
     // to the message queue using move semantics. The cycle duration should be a random value between 4 and 6 seconds. 
     // Also, the while-loop should use std::this_thread::sleep_for to wait 1ms between two cycles. 
+    
     std::random_device rd;  //Will be used to obtain a seed for the random number engine
     std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-    std::uniform_int_distribution<> dis(4, 6);
+    std::uniform_real_distribution<> dis(4.0, 6.0);
     //std::unique_lock<std::mutex> uLock(_mutex);
     //uLock.unlock();
+    double cycleDuration = dis(gen); //initialize randomly
+    auto lastUpdate = std::chrono::system_clock::now(); //current time
 
-    while (true)
+    while (true) //loop forever
     {
+        //calculate time difference between loops
+        std::chrono::duration<double> timeDifference = std::chrono::system_clock::now() - lastUpdate;
+        double timeSinceLastUpdate = timeDifference.count();
+
+        //if time elapsed is greater than cycleDuration
+        if(timeSinceLastUpdate > cycleDuration)
+        {
+            //toggle light
+            if(_currentPhase == TrafficLightPhase::red)
+            {
+                _currentPhase = TrafficLightPhase::green;                
+            }
+            else
+            {
+                _currentPhase = TrafficLightPhase::red;
+            }
+            _msgQ->send(std::move(_currentPhase));       
+            lastUpdate = std::chrono::system_clock::now();    
+        }
+        cycleDuration = dis(gen); //randomly change cycle duration
+    /*  //My first simple approach to toggle with random delay
+        //Keeping it as I think it's better than above required implementation
         std::this_thread::sleep_for(std::chrono::milliseconds(1));//wait 1ms between two cycles
         //uLock.lock();
         _currentPhase = TrafficLightPhase::red;
         //uLock.unlock();
         _msgQ->send(std::move(_currentPhase));
-        std::this_thread::sleep_for(std::chrono::seconds(dis(gen)));
+        std::this_thread::sleep_for(std::chrono::duration<double>(dis(gen)));
         _currentPhase = TrafficLightPhase::green;
         _msgQ->send(std::move(_currentPhase));
+    */
     }    
 }
 
